@@ -4,10 +4,20 @@ from sqlalchemy.orm import Session
 from app.db import database
 from app.model import itemModel
 from app.schema import itemSch
+from typing import List
 
 itemModel.Base.metadata.create_all(bind=database.engine)
 
+
 router = APIRouter()
+
+
+# endpoints
+
+@router.get("/items", response_model=List[itemSch.Item])
+def read_items(skip: int = 0, limit: int = 10, db: Session = Depends(database.get_db)):
+    items = db.query(itemModel.Item).order_by(itemModel.Item.id).offset(skip).limit(limit).all()
+    return items
 
 @router.post("/items/", response_model=itemSch.Item)
 def create_item(item: itemSch.ItemCreate, db: Session = Depends(database.get_db)):
